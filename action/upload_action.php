@@ -10,6 +10,10 @@ $imageTmpName = $_FILES['image']['tmp_name'];
 $imageError = $_FILES['image']['error'];
 $imageType = $_FILES['image']['type'];
 
+$name = $_POST['username'];
+$email = $_POST['email'];
+
+
 if ($imageError === 0) {
     // echo "Image Uploaded Successfully";
                      
@@ -22,9 +26,32 @@ if ($imageError === 0) {
        
 
     if(in_array(strtolower($imageExt), $allowedExt)){
-            $newImageName = uniqid('000-').".".$imageExt;
-            echo $newImageName .  "<br>";
+
+            $newImageName = uniqid('000-').".". strtolower($imageExt);
+            // echo $newImageName .  "<br>";
+
+            $imageuploadPath = "../images/";
+             
+            if(move_uploaded_file($imageTmpName, $imageuploadPath . $newImageName)){
+
+                    $sql = "INSERT INTO guest(guest_name, guest_email, guest_image) values(?,?,?) ";
+                    $stmt= $conn->prepare($sql);
+                    $stmt->bind_param("sss", $name, $email, $newImageName);
+                    if($stmt->execute()){
+                        $successMsg = "Guest Added Successfully";
+                        header("location:../index.php?successMsg=$successMsg");
+                    }else{
+                        $msg = "Failed to Add Guest";
+                        header("location:../index.php?msg=$msg");
+                    }
+            }
+
+
+            echo $imageuploadPath .  "<br>";
             
+        }else{
+            $msg =  "Invalid Image Type";
+            header("location:../index.php?msg=$msg");
         }
 
 

@@ -16,7 +16,15 @@
     <div class="container">
         <diV class="row mt-5">
             <div class="col-md-12">
-                <h1>File Upload Task</h1>
+                <h1>Guest Add</h1>
+                <?php 
+                            if(isset($_GET['successMsg'])){ ?>
+                                <div class=" col-md-4 alert alert-success" role="alert">
+                                    <?php echo $_GET['successMsg']; ?>    
+                                </div>
+                                <?php 
+                            }
+                            ?>
                 <form method="POST" action="action/upload_action.php" enctype="multipart/form-data">
                 <div class="form-group">
                         <label for="exampleInputEmail1">Username </label>
@@ -51,8 +59,50 @@
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>
-
         </diV>
+        <div class="row mt-5">
+                            <h1>Guest list</h1>
+                <div class="col-md-12">
+                        <table class="table table-striped table-inverse table-responsive">
+                            <thead class="thead-inverse">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th> Image</th>
+                                    <th> Delete</th>
+                                    <th> Edit</th>
+                                </tr>
+                                </thead>
+                                <?php 
+                                    include_once 'action/conn.php';
+                                    $sql = "SELECT * FROM guest order by   guest_id desc";
+                                    $result = $conn->query($sql);
+                                    if ($result->num_rows > 0) {
+                                        while($row = $result->fetch_assoc()) {
+                                            echo "<tr>";
+                                            echo "<td>" . $row['guest_id'] . "</td>";
+                                            echo "<td>" . $row['guest_name'] . "</td>";
+                                            echo "<td>" . $row['guest_email'] . "</td>";
+                                            echo "<td><img src='images/" . $row['guest_image'] . "' width='50px' height='50px'/></td>";
+                                            echo "<td> 
+                                            <form method='POST' action='action/delete_guest.php'>
+                                            <input type='hidden' name='id' value='" . $row['guest_id'] . "'>
+                                            <input type='hidden' name='image_name' value='" . $row['guest_image'] . "'>
+
+                                            <button type='submit' class='btn btn-danger'>Delete</button>
+                                            </form>
+                                            
+                                            ";
+                                            echo "<td> <a href='action/edit_action.php?id=" . $row['guest_id'] . "' class='btn btn-success'>Edit</td>";
+                                            echo "</tr>";
+                                        }
+                                    }
+                                ?>
+    
+                        </table>
+                </div>
+            </div>
     </div>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
