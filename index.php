@@ -94,7 +94,7 @@
                                             </form>
                                             
                                             ";
-                                            echo "<td> <a href='action/edit_action.php?id=" . $row['guest_id'] . "' class='btn btn-success'>Edit</td>";
+                                            echo "<td> <a href='edit_guest.php?id=" . $row['guest_id'] . "' class='btn btn-success'>Edit</td>";
                                             echo "</tr>";
                                         }
                                     }

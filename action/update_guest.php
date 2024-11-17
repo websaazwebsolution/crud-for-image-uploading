@@ -26,42 +26,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Prepare SQL statement for updating guest data
     $sql = "UPDATE guest SET guest_name = ?, guest_email = ?";
 
-    // Allowed file extensions
-    $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
-
     // Check if an image was uploaded
     if (!empty($_FILES['guest_image']['name'])) {
         // Handle file upload
         $image_tmp = $_FILES['guest_image']['tmp_name'];
         
         // Get the file extension
-        $imageExt = strtolower(pathinfo($_FILES['guest_image']['name'], PATHINFO_EXTENSION));
+        $imageExt = pathinfo($_FILES['guest_image']['name'], PATHINFO_EXTENSION);
+        
+        // Generate a unique name for the image
+        $newImageName = uniqid('img-', true) . "." . strtolower($imageExt);
 
-        // Validate file extension
-        if (in_array($imageExt, $allowedExt)) {
-            // Generate a unique name for the image
-            $newImageName = uniqid('img-', true) . "." . $imageExt;
+        // Move uploaded file to target directory (make sure this directory exists)
+        move_uploaded_file($image_tmp, "../images/" . basename($newImageName));
 
-            // Move uploaded file to target directory (make sure this directory exists)
-            move_uploaded_file($image_tmp, "../images/" . basename($newImageName));
+        // Add image to SQL statement
+        $sql .= ", guest_image = ?";
+        
+        // Prepare statement with image
+        $stmt = $conn->prepare($sql . " WHERE guest_id = ?");
+        $stmt->bind_param("sssi", $guest_name, $guest_email, $newImageName, $guest_id);
 
-            // Add image to SQL statement
-            $sql .= ", guest_image = ?";
-            
-            // Prepare statement with image
-            $stmt = $conn->prepare($sql . " WHERE guest_id = ?");
-            $stmt->bind_param("sssi", $guest_name, $guest_email, $newImageName, $guest_id);
-
-            // Unlink (delete) the old image file if it exists
-            if (!empty($current_image)) {
-                $old_image_path = "../images/" . basename($current_image);
-                if (file_exists($old_image_path)) {
-                    unlink($old_image_path);  // Delete old image
-                }
+        // Unlink (delete) the old image file if it exists
+        if (!empty($current_image)) {
+            $old_image_path = "../images/" . basename($current_image);
+            if (file_exists($old_image_path)) {
+                unlink($old_image_path);  // Delete old image
             }
-        } else {
-            echo "Invalid file type. Allowed types are: " . implode(", ", $allowedExt);
-            exit;  // Stop execution if the file type is not allowed
         }
         
     } else {
@@ -72,7 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Execute the statement
     if ($stmt->execute()) {
-        header("Location: index.php?successMsg=Guest updated successfully");
+        $successMsg =  "Guest data updated successfully.";
+        header("Location: ../index.php?successMsg=Guest updated successfully");
         exit;
     } else {
         echo "Error updating record: " . $stmt->error;
